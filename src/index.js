@@ -43,16 +43,23 @@ document.getElementById('record').onclick = e => {
         navigator.mediaDevices
             .getUserMedia({ audio: true })
             .then(stream => changeInput(e.target, stream))
-            .catch(err => console.log('The following gUM error occured: ' + err))
+            .catch(err => console.log('The following gUM error occurred: ' + err))
     } else {
         console.log('getUserMedia not supported on your browser!')
     }
 }
 
+// Play song without microphone access
 const songs = document.getElementsByClassName('song')
 for (const song of songs) {
     song.addEventListener('pointerdown', () => {
-        changeInput(song, audioEl)
+        // Initialize the AudioContext only if it hasn't been initialized yet
+        if (!audioCtx) {
+            initAudioContext();
+        }
+
+        // Play the selected audio file
+        changeInput(song, audioEl);
     })
 }
 
@@ -81,39 +88,43 @@ let audioSourceNode
 let mediaStreamAudioSourceNode
 let mediaElementAudioSourceNode
 
+// Updated to only initialize AudioContext when needed
 function changeInput(htmlEl, input) {
-    if (activeSongEl === htmlEl) return
+    if (activeSongEl === htmlEl) return;
 
-    if (activeSongEl) activeSongEl.classList.remove('active')
-    htmlEl.classList.add('active')
-    activeSongEl = htmlEl
+    if (activeSongEl) activeSongEl.classList.remove('active');
+    htmlEl.classList.add('active');
+    activeSongEl = htmlEl;
 
-    initAudioContext()
+    // Initialize the AudioContext if it hasn’t been initialized
+    if (!audioCtx) {
+        initAudioContext();
+    }
 
-    if (audioSourceNode !== undefined) audioSourceNode.disconnect()
+    if (audioSourceNode !== undefined) audioSourceNode.disconnect();
 
     if (input instanceof MediaStream) {
-        audioEl.pause()
+        audioEl.pause();
 
         if (mediaStreamAudioSourceNode === undefined) {
-            mediaStreamAudioSourceNode = audioCtx.createMediaStreamSource(input)
+            mediaStreamAudioSourceNode = audioCtx.createMediaStreamSource(input);
         }
 
-        mediaStreamAudioSourceNode.connect(lowFilter)
-        mediaStreamAudioSourceNode.connect(highFilter)
-        audioSourceNode = mediaStreamAudioSourceNode
+        mediaStreamAudioSourceNode.connect(lowFilter);
+        mediaStreamAudioSourceNode.connect(highFilter);
+        audioSourceNode = mediaStreamAudioSourceNode;
     } else if (input instanceof HTMLAudioElement) {
-        audioEl.src = demoSongs[htmlEl.dataset.id]
-        audioEl.play()
+        audioEl.src = demoSongs[htmlEl.dataset.id];
+        audioEl.play();
 
         if (mediaElementAudioSourceNode === undefined) {
-            mediaElementAudioSourceNode = audioCtx.createMediaElementSource(input)
+            mediaElementAudioSourceNode = audioCtx.createMediaElementSource(audioEl);
         }
 
-        mediaElementAudioSourceNode.connect(lowFilter)
-        mediaElementAudioSourceNode.connect(highFilter)
-        mediaElementAudioSourceNode.connect(audioCtx.destination)
-        audioSourceNode = mediaElementAudioSourceNode
+        mediaElementAudioSourceNode.connect(lowFilter);
+        mediaElementAudioSourceNode.connect(highFilter);
+        mediaElementAudioSourceNode.connect(audioCtx.destination);
+        audioSourceNode = mediaElementAudioSourceNode;
     }
 }
 
