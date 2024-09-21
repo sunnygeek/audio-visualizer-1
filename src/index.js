@@ -49,19 +49,37 @@ document.getElementById('record').onclick = e => {
     }
 }
 
+// Variable to track if the user has interacted with the page
+let userInteracted = false;
+
+// Function to initialize the AudioContext
+function initializeAudioContext() {
+    if (!audioCtx) {
+        initAudioContext();
+    }
+}
+
+// Global click listener to register user interaction
+window.addEventListener('click', () => {
+    userInteracted = true;
+    initializeAudioContext(); // Initialize AudioContext on first interaction
+}, { once: true }); // Ensure this only fires once
+
 // Play song without microphone access
-const songs = document.getElementsByClassName('song')
+const songs = document.getElementsByClassName('song');
 for (const song of songs) {
     song.addEventListener('pointerdown', () => {
-        // Initialize the AudioContext only if it hasn't been initialized yet
-        if (!audioCtx) {
-            initAudioContext();
+        // Ensure user interaction has been established
+        if (!userInteracted) {
+            console.log('User must interact with the page first.');
+            return;
         }
 
         // Play the selected audio file
         changeInput(song, audioEl);
-    })
+    });
 }
+
 
 document.getElementById('trippy').onclick = e => {
     initAudioContext()
