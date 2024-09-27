@@ -34,6 +34,14 @@ function toggleUI() {
     if (!UI.style.visibility || UI.style.visibility === 'visible') UI.style.visibility = 'hidden'
     else UI.style.visibility = 'visible'
 }
+document.addEventListener('touchend', e => {
+    if (e.target === document.body && UI.style.visibility === 'hidden') toggleUI()
+})
+document.addEventListener('click', e => {
+    if (e.target === document.body && UI.style.visibility === 'hidden') toggleUI()
+})
+
+document.getElementById('hide').onclick = toggleUI
 document.addEventListener('keydown', e => {
     if (e.keyCode === 72) toggleUI()
 })
